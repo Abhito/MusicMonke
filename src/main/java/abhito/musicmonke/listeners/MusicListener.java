@@ -40,11 +40,17 @@ public class MusicListener extends ListenerAdapter {
         if("!play".equals(command[0]) && command.length == 2){
             loadAndPlay(event, command[1]);
         }
+        else if("!play".equals(command[0]) && command.length == 1){
+            startPlayer(event.getTextChannel());
+        }
         else if("!skip".equals(command[0]) && "all".equals(command[1])){
             skipAllTrack(event.getTextChannel());
         }
         else if("!skip".equals(command[0])){
             skipTrack(event.getTextChannel());
+        }
+        else if("!stop".equals(command[0])){
+            stopTrack(event.getTextChannel());
         }
 
     }
@@ -148,6 +154,26 @@ public class MusicListener extends ListenerAdapter {
         musicManager.scheduler.skipAllTracks();
 
         channel.sendMessage("Skipped all tracks ~nyan.").queue();
+
+    }
+
+    private void stopTrack(TextChannel channel){
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        musicManager.player.setPaused(true);
+
+        channel.sendMessage("Paused the track ~nyan").queue();
+    }
+
+    private void startPlayer(TextChannel channel){
+        GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+
+        if(musicManager.player.isPaused()) {
+            musicManager.player.setPaused(false);
+            channel.sendMessage("UnPausing Player ~nyan.").queue();
+        }
+        else{
+            channel.sendMessage("No track mentioned next to command ~nyan.").queue();
+        }
 
     }
 
