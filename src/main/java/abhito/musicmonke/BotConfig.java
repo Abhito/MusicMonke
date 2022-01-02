@@ -16,9 +16,6 @@ import javax.security.auth.login.LoginException;
 public class BotConfig {
 
     @Autowired
-    private Environment env;
-
-    @Autowired
     private PingListener pingListener;
 
     @Autowired
@@ -27,7 +24,7 @@ public class BotConfig {
     @Bean
     @ConfigurationProperties(value = "discord-api")
     public JDA Discordjda() throws LoginException {
-        String token = env.getProperty("TOKEN");
+        String token = System.getenv("TOKEN");
         JDA jda = JDABuilder.createDefault(token).build();
         jda.addEventListener(pingListener);
         jda.addEventListener(musicListener);
