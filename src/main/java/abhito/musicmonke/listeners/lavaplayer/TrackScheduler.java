@@ -42,8 +42,12 @@ public class TrackScheduler extends AudioEventAdapter {
     }
 
     public void skipAllTracks(){
-        while(!queueList.isEmpty()){
-            queueList.remove();
+        if(queueList.isEmpty()){
+            nextTrack();
+        }
+        else {
+            queueList.poll();
+            skipAllTracks();
         }
     }
 

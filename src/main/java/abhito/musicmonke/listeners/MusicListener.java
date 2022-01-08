@@ -10,6 +10,8 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -43,16 +45,40 @@ public class MusicListener extends ListenerAdapter {
         else if("!play".equals(command[0]) && command.length == 1){
             startPlayer(event.getTextChannel());
         }
+        else if("!skip".equals(command[0]) && command.length == 1){
+            skipTrack(event.getTextChannel());
+        }
         else if("!skip".equals(command[0]) && "all".equals(command[1])){
             skipAllTrack(event.getTextChannel());
-        }
-        else if("!skip".equals(command[0])){
-            skipTrack(event.getTextChannel());
         }
         else if("!stop".equals(command[0])){
             stopTrack(event.getTextChannel());
         }
 
+    }
+
+    @Override
+    public void onGuildVoiceLeave(GuildVoiceLeaveEvent event){
+        leaveChannel(event.getGuild(), event.getChannelLeft());
+    }
+
+    @Override
+    public void onGuildVoiceMove(GuildVoiceMoveEvent event){
+        leaveChannel(event.getGuild(), event.getChannelLeft());
+    }
+
+    /**
+     * Tells the bot to leave voice channel when no one is there
+     * @param guild The server where the bot is
+     * @param channelLeft The voice channel to check
+     */
+    private void leaveChannel(Guild guild, AudioChannel channelLeft) {
+        GuildMusicManager musicManager = getGuildAudioPlayer(guild);
+        AudioManager audioManager = channelLeft.getGuild().getAudioManager();
+        if(audioManager.isConnected() && channelLeft.getMembers().size() == 1){
+            musicManager.scheduler.skipAllTracks();
+            audioManager.closeAudioConnection();
+        }
     }
 
     public void loadAndPlay(final MessageReceivedEvent event, final String url){
