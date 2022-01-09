@@ -1,1 +1,1 @@
-web: java src/main/java/abhito/musicmonke/MusicMonkeApplication.java
+web: mvn spring-boot:run
