@@ -1,1 +1,1 @@
-Worker java src/main/java/abhito/musicmonke/MusicMonkeApplication.java
+web: java src/main/java/abhito/musicmonke/MusicMonkeApplication.java
