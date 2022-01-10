@@ -5,7 +5,7 @@ import abhito.musicmonke.listeners.lavaplayer.GuildMusicManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager;
+import com.sedmelluq.discord.lavaplayer.source.youtube.*;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -32,7 +32,7 @@ public class MusicListener extends ListenerAdapter {
     public MusicListener() {
         this.musicManagers = new HashMap<>();
         this.playerManager = new DefaultAudioPlayerManager();
-        playerManager.registerSourceManager(new YoutubeAudioSourceManager());
+        playerManager.registerSourceManager(new YoutubeAudioSourceManager(true));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class MusicListener extends ListenerAdapter {
     }
 
     /**
-     * Tells the bot to leave voice channel when no one is there
+     * Tells the bot to leave voice channel
      * @param guild The server where the bot is
      * @param channelLeft The voice channel to check
      */
@@ -103,17 +103,28 @@ public class MusicListener extends ListenerAdapter {
                     firstTrack = audioPlaylist.getTracks().get(0);
                 }
 
-                channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist "
-                + audioPlaylist.getName() + ")").queue();
+                if(!url.startsWith("ytsearch: ")) {
+                    channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist "
+                            + audioPlaylist.getName() + ")").queue();
 
-                for(AudioTrack track: audioPlaylist.getTracks()) {
-                    play(event, musicManager, track);
+                    for (AudioTrack track : audioPlaylist.getTracks()) {
+                        play(event, musicManager, track);
+                    }
+                }
+                else{
+                    trackLoaded(firstTrack);
                 }
             }
 
             @Override
             public void noMatches() {
-                channel.sendMessage("Nothing found by " + url).queue();
+                if(!url.startsWith("ytsearch: ")) {
+                    String search = "ytsearch: " + url;
+                    loadAndPlay(event, search);
+                }
+                else {
+                    channel.sendMessage("Nothing found on Youtube ~nyan").queue();
+                }
             }
 
             @Override
