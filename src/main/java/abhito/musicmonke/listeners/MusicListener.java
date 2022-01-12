@@ -1,6 +1,7 @@
 package abhito.musicmonke.listeners;
 
 
+import abhito.musicmonke.embeds.MonkeEmbed;
 import abhito.musicmonke.listeners.lavaplayer.GuildMusicManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -86,13 +87,15 @@ public class MusicListener extends ListenerAdapter {
         TextChannel channel = event.getTextChannel();
         //create musicManager for server or recall it
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
+        musicManager.scheduler.updateChannel(channel);
 
         playerManager.loadItem(url, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack audioTrack) {
-                channel.sendMessage("Adding a track " + audioTrack.getInfo().title).queue();
+                MonkeEmbed embeder = EmbedMaker(audioTrack, event);
+                channel.sendMessageEmbeds(embeder.eb.build()).queue();
 
-                play(event, musicManager, audioTrack);
+                play(event, musicManager, audioTrack, embeder);
             }
 
             @Override
@@ -104,11 +107,11 @@ public class MusicListener extends ListenerAdapter {
                 }
 
                 if(!url.startsWith("ytsearch: ")) {
-                    channel.sendMessage("Adding to queue " + firstTrack.getInfo().title + " (first track of playlist "
-                            + audioPlaylist.getName() + ")").queue();
+                    channel.sendMessage("Adding Playlist " + audioPlaylist.getName() +
+                            " (first track of playlist is " + firstTrack.getInfo().title + ")").queue();
 
                     for (AudioTrack track : audioPlaylist.getTracks()) {
-                        play(event, musicManager, track);
+                        play(event, musicManager, track, EmbedMaker(track,event));
                     }
                 }
                 else{
@@ -132,6 +135,15 @@ public class MusicListener extends ListenerAdapter {
                 channel.sendMessage("Could not play: " + e.getMessage()).queue();
             }
         });
+    }
+
+    private MonkeEmbed EmbedMaker(AudioTrack track, MessageReceivedEvent event) {
+        MonkeEmbed embeder = new MonkeEmbed();
+        embeder.eb.setAuthor("Added Track ");
+        embeder.eb.setTitle(track.getInfo().title, track.getInfo().uri);
+        embeder.createThumbnail(track.getInfo().uri);
+        embeder.eb.setFooter(event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+        return embeder;
     }
 
     /**
@@ -160,7 +172,7 @@ public class MusicListener extends ListenerAdapter {
      * @param musicManager Which server to play on
      * @param track The Track to play
      */
-    private void play(MessageReceivedEvent event, GuildMusicManager musicManager, AudioTrack track){
+    private void play(MessageReceivedEvent event, GuildMusicManager musicManager, AudioTrack track, MonkeEmbed embed){
         AudioChannel channel = event.getMember().getVoiceState().getChannel();
         if(channel == null){
             event.getTextChannel().sendMessage("Your not in a Voice Channel ~nyan.").queue();
@@ -168,7 +180,7 @@ public class MusicListener extends ListenerAdapter {
         }
         connectToVoiceChannel(channel, event.getTextChannel().getGuild().getAudioManager());
 
-        musicManager.scheduler.queue(track);
+        musicManager.scheduler.queue(track, embed);
     }
 
     /**
@@ -177,9 +189,8 @@ public class MusicListener extends ListenerAdapter {
      */
     private void skipTrack(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
-        musicManager.scheduler.nextTrack();
-
         channel.sendMessage("Skipped to next track ~nyan.").queue();
+        musicManager.scheduler.nextTrack(false);
     }
 
     /**
