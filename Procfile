@@ -1,1 +1,1 @@
-worker: java -jar MusicMonke-0.0.1-SNAPSHOT.jar
+worker: java -jar MusicMonke-0.1.0-SNAPSHOT.jar
