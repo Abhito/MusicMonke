@@ -18,5 +18,16 @@ public class PingListener extends ListenerAdapter {
             MessageChannel channel = event.getChannel();
             channel.sendMessage("Pong!").queue();
         }
+
+        else if(content.equals("!invite")){
+            MessageChannel channel = event.getChannel();
+            channel.sendMessage("Invite me to your with " +
+                    "https://discord.com/oauth2/authorize?client_id=924763309507506206&scope=bot&permissions=420977564737"
+            ).queue();
+        }
+        else if(content.equals("!creator")){
+            MessageChannel channel = event.getChannel();
+            channel.sendMessage("The person who made is called Abhito. Who knows where they are now. ~nyan").queue();
+        }
     }
 }
