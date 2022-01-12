@@ -21,7 +21,7 @@ public class PingListener extends ListenerAdapter {
 
         else if(content.equals("!invite")){
             MessageChannel channel = event.getChannel();
-            channel.sendMessage("Invite me to your with " +
+            channel.sendMessage("Invite me to your Server with " +
                     "https://discord.com/oauth2/authorize?client_id=924763309507506206&scope=bot&permissions=420977564737"
             ).queue();
         }
