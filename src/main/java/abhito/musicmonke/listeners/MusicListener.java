@@ -39,18 +39,16 @@ public class MusicListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
-        if(isConnected(event)) {
-            if ("!play".equals(command[0]) && command.length == 2) {
-                loadAndPlay(event, command[1]);
-            } else if ("!play".equals(command[0]) && command.length == 1) {
-                startPlayer(event.getTextChannel());
-            } else if ("!skip".equals(command[0]) && command.length == 1) {
-                skipTrack(event.getTextChannel());
-            } else if ("!skip".equals(command[0]) && "all".equals(command[1])) {
-                skipAllTrack(event.getTextChannel());
-            } else if ("!stop".equals(command[0])) {
-                stopTrack(event.getTextChannel());
-            }
+        if ("!play".equals(command[0]) && command.length == 2) {
+            if(isConnected(event)) loadAndPlay(event, command[1]);
+        } else if ("!play".equals(command[0]) && command.length == 1) {
+            if(isConnected(event)) startPlayer(event.getTextChannel());
+        } else if ("!skip".equals(command[0]) && command.length == 1) {
+            if(isConnected(event)) skipTrack(event.getTextChannel());
+        } else if ("!skip".equals(command[0]) && "all".equals(command[1])) {
+            if(isConnected(event)) skipAllTrack(event.getTextChannel());
+        } else if ("!stop".equals(command[0])) {
+            if(isConnected(event)) stopTrack(event.getTextChannel());
         }
 
     }
@@ -243,7 +241,7 @@ public class MusicListener extends ListenerAdapter {
         AudioChannel channel = event.getMember().getVoiceState().getChannel();
         AudioManager audioManager = event.getTextChannel().getGuild().getAudioManager();
         AudioChannel channelconnected = audioManager.getConnectedChannel();
-        if(channel == null || (channelconnected != null && channelconnected != channel)){
+        if(channel == null || (audioManager.isConnected() && channelconnected != channel)){
             event.getTextChannel().sendMessage("Your not in a Voice Channel ~nyan.").queue();
             return false;
         }
