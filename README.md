@@ -1,2 +1,3 @@
 # MusicMonke
-A discord bot that can play music
+A discord bot that can play music.
+Developed using Java Spring
