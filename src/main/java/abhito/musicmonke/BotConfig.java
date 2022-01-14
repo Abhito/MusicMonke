@@ -11,6 +11,11 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.security.auth.login.LoginException;
 
+/**
+ * Starts up the bot and contains the config for it.
+ * @author Abhinav Singhal
+ * @version 1.0
+ */
 @Configuration
 public class BotConfig {
 
@@ -20,6 +25,11 @@ public class BotConfig {
     @Autowired
     private MusicListener musicListener;
 
+    /**
+     * Starts the jda bot
+     * @return The jda bot
+     * @throws LoginException If the bot fails to login
+     */
     @Bean
     @ConfigurationProperties(value = "discord-api")
     public JDA Discordjda() throws LoginException {

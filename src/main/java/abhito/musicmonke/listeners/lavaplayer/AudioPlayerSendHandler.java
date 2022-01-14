@@ -7,6 +7,11 @@ import net.dv8tion.jda.api.audio.AudioSendHandler;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
+/**
+ * Setup the AudioSendHandler for jda
+ * @author Abhinav Singhal
+ * @version 1.0
+ */
 public class AudioPlayerSendHandler implements AudioSendHandler {
 
     private final AudioPlayer audioPlayer;

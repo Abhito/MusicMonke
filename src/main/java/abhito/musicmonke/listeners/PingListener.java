@@ -5,9 +5,18 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.stereotype.Component;
 
+/**
+ * Handles random commands that don't belong in other listeners
+ * @author Abhinav Singhal
+ * @version 1.0
+ */
 @Component
 public class PingListener extends ListenerAdapter {
 
+    /**
+     * Performs actions based on commands
+     * @param event The message event
+     */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
         if(event.getAuthor().isBot()) return; //if bot end event

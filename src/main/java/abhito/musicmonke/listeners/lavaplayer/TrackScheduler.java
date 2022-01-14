@@ -59,6 +59,9 @@ public class TrackScheduler extends AudioEventAdapter {
         player.startTrack(queueList.poll(), false);
     }
 
+    /**
+     * Skip every track in queue
+     */
     public void skipAllTracks(){
         if(queueList.isEmpty()){
             nextTrack(true);
@@ -83,6 +86,10 @@ public class TrackScheduler extends AudioEventAdapter {
         }
     }
 
+    /**
+     * Change the channel to send messages to
+     * @param channel The new channel
+     */
     public void updateChannel(TextChannel channel){
         this.channel = channel;
     }

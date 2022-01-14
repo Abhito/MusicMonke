@@ -21,6 +21,11 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * MusicListener handles all discord operations related to music
+ * @author Abhinav Singhal
+ * @version 1.0
+ */
 @Component
 public class MusicListener extends ListenerAdapter {
 
@@ -36,8 +41,14 @@ public class MusicListener extends ListenerAdapter {
         playerManager.registerSourceManager(new YoutubeAudioSourceManager(true));
     }
 
+    /**
+     * Calls methods when commands related to music are used
+     * @param event The Message event
+     */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
+        if(event.getAuthor().isBot()) return;
+
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
         if ("!play".equals(command[0]) && command.length == 2) {
             if(isConnected(event)) loadAndPlay(event, command[1]);
@@ -53,11 +64,19 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
+    /**
+     * Tell the bot to leave when someone leaves
+     * @param event When someone leaves
+     */
     @Override
     public void onGuildVoiceLeave(GuildVoiceLeaveEvent event){
         leaveChannel(event.getGuild(), event.getChannelLeft());
     }
 
+    /**
+     * Tell the bot to leave when someone moves to a different channel
+     * @param event When someone moves
+     */
     @Override
     public void onGuildVoiceMove(GuildVoiceMoveEvent event){
         leaveChannel(event.getGuild(), event.getChannelLeft());
@@ -77,6 +96,11 @@ public class MusicListener extends ListenerAdapter {
         }
     }
 
+    /**
+     * Takes the provided url and trys to play it
+     * @param event The message event
+     * @param url The song to load
+     */
     public void loadAndPlay(final MessageReceivedEvent event, final String url){
 
         TextChannel channel = event.getTextChannel();
@@ -199,6 +223,10 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
+    /**
+     * Pause playing track
+     * @param channel Channel to send message to
+     */
     private void stopTrack(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
@@ -207,6 +235,10 @@ public class MusicListener extends ListenerAdapter {
         channel.sendMessage("Paused the track ~nyan").queue();
     }
 
+    /**
+     * Unpause the player
+     * @param channel Channel to send message to
+     */
     private void startPlayer(TextChannel channel){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
@@ -216,7 +248,7 @@ public class MusicListener extends ListenerAdapter {
             channel.sendMessage("UnPausing Player ~nyan.").queue();
         }
         else {
-                channel.sendMessage("No track mentioned next to command ~nyan.").queue();
+            channel.sendMessage("No track mentioned next to command ~nyan.").queue();
         }
 
     }

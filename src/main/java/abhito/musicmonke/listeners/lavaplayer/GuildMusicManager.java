@@ -5,6 +5,8 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 
 /**
  * This class represents one Server Music Manager
+ * @author Abhinav Singhal
+ * @version 1.0
  */
 public class GuildMusicManager {
 
