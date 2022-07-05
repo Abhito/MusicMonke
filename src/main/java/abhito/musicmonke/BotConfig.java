@@ -48,6 +48,15 @@ public class BotConfig {
                         .addOptions(new OptionData(STRING, "url", "The url of the song you want to play" ))
                         .setGuildOnly(true)
         );
+        commands.addCommands(
+               Commands.slash("skip", "Skip current song").setGuildOnly(true)
+        );
+        commands.addCommands(
+                Commands.slash("skip-all", "Skip all songs in queue").setGuildOnly(true)
+        );
+        commands.addCommands(
+                Commands.slash("stop", "Pause current track").setGuildOnly(true)
+        );
         commands.queue();
         return jda;
     }

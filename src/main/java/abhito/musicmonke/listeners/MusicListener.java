@@ -16,12 +16,9 @@ import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.springframework.stereotype.Component;
 import net.dv8tion.jda.api.interactions.*;
-import net.dv8tion.jda.api.events.interaction.*;
-import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,15 +75,43 @@ public class MusicListener extends ListenerAdapter {
         // Only accept commands from guilds
         if (event.getGuild() == null)
             return;
+        event.deferReply(true).queue();
+        InteractionHook hook = event.getHook();
+        hook.setEphemeral(true);
         switch (event.getName()){
             case "play":
                 if(event.getOption("url") == null){
-                    if(isConnected(event.getMember(), event.getTextChannel())) startPlayer(event.getTextChannel());
+                    if(isConnected(event.getMember(), event.getTextChannel())) {
+                        hook.sendMessage("Resuming Player ~nyan").queue();
+                        startPlayer(event.getTextChannel());
+                    }
                 }
                 else{
-                    if(isConnected(event.getMember(), event.getTextChannel())) loadAndPlay(event.getMember(),
-                            event.getUser(), event.getTextChannel() ,event.getOption("url").getAsString());
+                    if(isConnected(event.getMember(), event.getTextChannel())){
+                        hook.sendMessage("Playing your track").queue();
+                        loadAndPlay(event.getMember(),
+                                event.getUser(), event.getTextChannel() ,event.getOption("url").getAsString());
+                    }
                 }
+            case "skip":
+                if(isConnected(event.getMember(), event.getTextChannel())){
+                    hook.sendMessage("Skipping track ~nyan").queue();
+                    skipTrack(event.getTextChannel());
+                }
+            case "skip-all":
+                if(isConnected(event.getMember(), event.getTextChannel())){
+                    hook.sendMessage("Skipping all tracks ~nyan").queue();
+                    skipAllTrack(event.getTextChannel());
+                }
+            case "stop":
+                if(isConnected(event.getMember(), event.getTextChannel())){
+                    hook.sendMessage("Pausing current track ~nyan").queue();
+                    stopTrack(event.getTextChannel());
+                }
+            default:
+                if(isConnected(event.getMember(), event.getTextChannel()))
+                    hook.sendMessage("Something went wrong ~nyan").queue();
+                else hook.sendMessage("Your not in a voice channel").queue();
         }
     }
 
