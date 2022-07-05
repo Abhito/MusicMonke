@@ -10,7 +10,7 @@
     </parent>
     <groupId>Abhito</groupId>
     <artifactId>MusicMonke</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.1.1-SNAPSHOT</version>
     <name>MusicMonke</name>
     <description>MusicMonke</description>
     <properties>
@@ -42,7 +42,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>5.0.0-alpha.1</version>
+            <version>5.0.0-alpha.13</version>
         </dependency>
 
         <dependency>

@@ -25,7 +25,11 @@ public class PingListener extends ListenerAdapter {
 
         if(content.equals("!ping")){
             MessageChannel channel = event.getChannel();
-            channel.sendMessage("Pong!").queue();
+            long time = System.currentTimeMillis();
+            channel.sendMessage("Pong!") /* => RestAction<Message> */
+                    .queue(response /* => Message */-> {
+                response.editMessageFormat("Pong: %d ms", System.currentTimeMillis() - time).queue();
+            });
         }
 
         else if(content.equals("!invite")){

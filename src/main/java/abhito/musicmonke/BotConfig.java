@@ -14,7 +14,7 @@ import javax.security.auth.login.LoginException;
 /**
  * Starts up the bot and contains the config for it.
  * @author Abhinav Singhal
- * @version 1.0
+ * @version 1.1.1
  */
 @Configuration
 public class BotConfig {
