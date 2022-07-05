@@ -13,10 +13,15 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.SlashCommandInteraction;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.springframework.stereotype.Component;
+import net.dv8tion.jda.api.interactions.*;
+import net.dv8tion.jda.api.events.interaction.*;
+import org.w3c.dom.Text;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,16 +56,41 @@ public class MusicListener extends ListenerAdapter {
 
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
         if ("!play".equals(command[0]) && command.length == 2) {
-            if(isConnected(event)) loadAndPlay(event, command[1]);
+            if(isConnected(event.getMember(), event.getTextChannel()))
+                loadAndPlay(event.getMember(), event.getAuthor(), event.getTextChannel(),command[1]);
         } else if ("!play".equals(command[0]) && command.length == 1) {
-            if(isConnected(event)) startPlayer(event.getTextChannel());
+            if(isConnected(event.getMember(), event.getTextChannel()))
+                startPlayer(event.getTextChannel());
         } else if ("!skip".equals(command[0]) && command.length == 1) {
-            if(isConnected(event)) skipTrack(event.getTextChannel());
+            if(isConnected(event.getMember(), event.getTextChannel()))
+                skipTrack(event.getTextChannel());
         } else if ("!skip".equals(command[0]) && "all".equals(command[1])) {
-            if(isConnected(event)) skipAllTrack(event.getTextChannel());
+            if(isConnected(event.getMember(), event.getTextChannel()))
+                skipAllTrack(event.getTextChannel());
         } else if ("!stop".equals(command[0])) {
-            if(isConnected(event)) stopTrack(event.getTextChannel());
+            if(isConnected(event.getMember(), event.getTextChannel()))
+                stopTrack(event.getTextChannel());
         }
+
+    }
+
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event){
+        // Only accept commands from guilds
+        if (event.getGuild() == null)
+            return;
+        switch (event.getName()){
+            case "play":
+                if(event.getOption("url") == null){
+                    if(isConnected(event.getMember(), event.getTextChannel())) startPlayer(event.getTextChannel());
+                }
+                else{
+                    if(isConnected(event.getMember(), event.getTextChannel())) loadAndPlay(event.getMember(),
+                            event.getUser(), event.getTextChannel() ,event.getOption("url").getAsString());
+                }
+        }
+    }
+
+    public void slashPlayHandler(SlashCommandInteractionEvent event){
 
     }
 
@@ -98,12 +128,12 @@ public class MusicListener extends ListenerAdapter {
 
     /**
      * Takes the provided url and trys to play it
-     * @param event The message event
+     * @param member The person who is connected to voice
+     * @param user The person who sent the message in text channel
+     * @param channel The text channel used
      * @param url The song to load
      */
-    public void loadAndPlay(final MessageReceivedEvent event, final String url){
-
-        TextChannel channel = event.getTextChannel();
+    public void loadAndPlay(final Member member, final User user, final TextChannel channel , final String url){
         //create musicManager for server or recall it
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
@@ -111,10 +141,10 @@ public class MusicListener extends ListenerAdapter {
         playerManager.loadItem(url, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack audioTrack) {
-                MonkeEmbed embeder = EmbedMaker(audioTrack, event);
+                MonkeEmbed embeder = EmbedMaker(audioTrack, user);
                 channel.sendMessageEmbeds(embeder.eb.build()).queue();
 
-                play(event, musicManager, audioTrack, embeder);
+                play(member, channel, musicManager, audioTrack, embeder);
             }
 
             @Override
@@ -130,7 +160,7 @@ public class MusicListener extends ListenerAdapter {
                             " (first track of playlist is " + firstTrack.getInfo().title + ")").queue();
 
                     for (AudioTrack track : audioPlaylist.getTracks()) {
-                        play(event, musicManager, track, EmbedMaker(track,event));
+                        play(member, channel, musicManager, track, EmbedMaker(track, user));
                     }
                 }
                 else{
@@ -142,7 +172,7 @@ public class MusicListener extends ListenerAdapter {
             public void noMatches() {
                 if(!url.startsWith("ytsearch: ")) {
                     String search = "ytsearch: " + url;
-                    loadAndPlay(event, search);
+                    loadAndPlay(member, user, channel, search);
                 }
                 else {
                     channel.sendMessage("Nothing found on Youtube ~nyan").queue();
@@ -156,12 +186,18 @@ public class MusicListener extends ListenerAdapter {
         });
     }
 
-    private MonkeEmbed EmbedMaker(AudioTrack track, MessageReceivedEvent event) {
+    /**
+     * EmbedMaker makes embed messages
+     * @param track The audio track being played
+     * @param author The person who played the track
+     * @return The embedded message
+     */
+    private MonkeEmbed EmbedMaker(AudioTrack track, User author) {
         MonkeEmbed embeder = new MonkeEmbed();
         embeder.eb.setAuthor("Added Track ");
         embeder.eb.setTitle(track.getInfo().title, track.getInfo().uri);
         embeder.createThumbnail(track.getInfo().uri);
-        embeder.eb.setFooter(event.getAuthor().getAsTag(), event.getAuthor().getAvatarUrl());
+        embeder.eb.setFooter(author.getAsTag(), author.getAvatarUrl());
         return embeder;
     }
 
@@ -187,14 +223,15 @@ public class MusicListener extends ListenerAdapter {
 
     /**
      * Plays a track
-     * @param event Where to play the track
+     * @param member Connect to the members voice channel
+     * @param textChannel Which text channel to send message
      * @param musicManager Which server to play on
      * @param track The Track to play
      */
-    private void play(MessageReceivedEvent event, GuildMusicManager musicManager, AudioTrack track, MonkeEmbed embed){
-        AudioChannel channel = event.getMember().getVoiceState().getChannel();
+    private void play(Member member, TextChannel textChannel, GuildMusicManager musicManager, AudioTrack track, MonkeEmbed embed){
+        AudioChannel channel = member.getVoiceState().getChannel();
 
-        connectToVoiceChannel(channel, event.getTextChannel().getGuild().getAudioManager());
+        connectToVoiceChannel(channel, textChannel.getGuild().getAudioManager());
 
         musicManager.scheduler.queue(track, embed);
     }
@@ -266,15 +303,16 @@ public class MusicListener extends ListenerAdapter {
 
     /**
      * Checks whether user is in a voice channel or if bot is already connected
-     * @param event The event that triggers the musicListener
+     * @param member The member that triggers the musicListener
+     * @param textChannel The channel that triggers the musicListener
      * @return Whether the bot is already connected
      */
-    private boolean isConnected(MessageReceivedEvent event) {
-        AudioChannel channel = event.getMember().getVoiceState().getChannel();
-        AudioManager audioManager = event.getTextChannel().getGuild().getAudioManager();
-        AudioChannel channelconnected = audioManager.getConnectedChannel();
-        if(channel == null || (audioManager.isConnected() && channelconnected != channel)){
-            event.getTextChannel().sendMessage("Your not in a Voice Channel ~nyan.").queue();
+    private boolean isConnected(Member member, TextChannel textChannel) {
+        AudioChannel channel = member.getVoiceState().getChannel();
+        AudioManager audioManager = textChannel.getGuild().getAudioManager();
+        AudioChannel channelConnected = audioManager.getConnectedChannel();
+        if(channel == null || (audioManager.isConnected() && channelConnected != channel)){
+            textChannel.sendMessage("Your not in a Voice Channel ~nyan.").queue();
             return false;
         }
         else return true;
