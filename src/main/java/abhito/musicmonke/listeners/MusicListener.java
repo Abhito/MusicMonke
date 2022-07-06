@@ -74,7 +74,7 @@ public class MusicListener extends ListenerAdapter {
         // Only accept commands from guilds
         if (event.getGuild() == null || event.getMember() == null)
             return;
-        event.deferReply(true).queue();
+        event.deferReply(false).queue();
         InteractionHook hook = event.getHook();
         switch (event.getName()){
             case "play":
