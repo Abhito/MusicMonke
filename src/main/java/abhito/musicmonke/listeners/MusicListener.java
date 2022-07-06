@@ -80,7 +80,7 @@ public class MusicListener extends ListenerAdapter {
         hook.setEphemeral(true);
         switch (event.getName()){
             case "play":
-                if(event.getOption("url") == null){
+                if(event.getOption("search") == null){
                     if(isConnected(event.getMember(), event.getTextChannel())) {
                         hook.sendMessage("Resuming Player ~nyan").queue();
                         startPlayer(event.getTextChannel());
@@ -90,7 +90,7 @@ public class MusicListener extends ListenerAdapter {
                     if(isConnected(event.getMember(), event.getTextChannel())){
                         hook.sendMessage("Playing your track").queue();
                         loadAndPlay(event.getMember(),
-                                event.getUser(), event.getTextChannel() ,event.getOption("url").getAsString());
+                                event.getUser(), event.getTextChannel() ,event.getOption("search").getAsString());
                     }
                 }
                 break;
