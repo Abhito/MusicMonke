@@ -93,21 +93,25 @@ public class MusicListener extends ListenerAdapter {
                                 event.getUser(), event.getTextChannel() ,event.getOption("url").getAsString());
                     }
                 }
+                break;
             case "skip":
                 if(isConnected(event.getMember(), event.getTextChannel())){
                     hook.sendMessage("Skipping track ~nyan").queue();
                     skipTrack(event.getTextChannel());
                 }
+                break;
             case "skip-all":
                 if(isConnected(event.getMember(), event.getTextChannel())){
                     hook.sendMessage("Skipping all tracks ~nyan").queue();
                     skipAllTrack(event.getTextChannel());
                 }
+                break;
             case "stop":
                 if(isConnected(event.getMember(), event.getTextChannel())){
                     hook.sendMessage("Pausing current track ~nyan").queue();
                     stopTrack(event.getTextChannel());
                 }
+                break;
             default:
                 if(isConnected(event.getMember(), event.getTextChannel()))
                     hook.sendMessage("Something went wrong ~nyan").queue();

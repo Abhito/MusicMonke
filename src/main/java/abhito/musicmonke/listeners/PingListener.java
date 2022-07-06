@@ -31,13 +31,6 @@ public class PingListener extends ListenerAdapter {
                 response.editMessageFormat("Pong: %d ms", System.currentTimeMillis() - time).queue();
             });
         }
-
-        else if(content.equals("!invite")){
-            MessageChannel channel = event.getChannel();
-            channel.sendMessage("Invite me to your Server with " +
-                    "https://discord.com/oauth2/authorize?client_id=924763309507506206&scope=bot&permissions=517647883329"
-            ).queue();
-        }
         else if(content.equals("!creator")){
             MessageChannel channel = event.getChannel();
             channel.sendMessage("The person who made is called Abhito. Who knows where they are now. ~nyan").queue();

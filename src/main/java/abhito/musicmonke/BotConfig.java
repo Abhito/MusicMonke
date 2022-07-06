@@ -45,7 +45,7 @@ public class BotConfig {
         CommandListUpdateAction commands = jda.updateCommands();
         commands.addCommands(
                 Commands.slash("play", "Play from current queue")
-                        .addOptions(new OptionData(STRING, "url", "The url of the song you want to play" ))
+                        .addOptions(new OptionData(STRING, "search", "The track you want to play" ))
                         .setGuildOnly(true)
         );
         commands.addCommands(
