@@ -49,46 +49,44 @@ public class MusicListener extends ListenerAdapter {
      */
     @Override
     public void onMessageReceived(MessageReceivedEvent event){
-        if(event.getAuthor().isBot()) return;
-
+        if(event.getAuthor().isBot() || event.getMember() == null) return;
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
         if ("!play".equals(command[0]) && command.length == 2) {
             if(isConnected(event.getMember(), event.getTextChannel()))
                 loadAndPlay(event.getMember(), event.getAuthor(), event.getTextChannel(),command[1]);
         } else if ("!play".equals(command[0]) && command.length == 1) {
             if(isConnected(event.getMember(), event.getTextChannel()))
-                startPlayer(event.getTextChannel());
+                startPlayer(event.getTextChannel(), null);
         } else if ("!skip".equals(command[0]) && command.length == 1) {
             if(isConnected(event.getMember(), event.getTextChannel()))
-                skipTrack(event.getTextChannel());
+                skipTrack(event.getTextChannel(), null);
         } else if ("!skip".equals(command[0]) && "all".equals(command[1])) {
             if(isConnected(event.getMember(), event.getTextChannel()))
-                skipAllTrack(event.getTextChannel());
+                skipAllTrack(event.getTextChannel(), null);
         } else if ("!stop".equals(command[0])) {
             if(isConnected(event.getMember(), event.getTextChannel()))
-                stopTrack(event.getTextChannel());
+                stopTrack(event.getTextChannel(), null);
         }
 
     }
 
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event){
         // Only accept commands from guilds
-        if (event.getGuild() == null)
+        if (event.getGuild() == null || event.getMember() == null)
             return;
         event.deferReply(true).queue();
         InteractionHook hook = event.getHook();
-        hook.setEphemeral(true);
         switch (event.getName()){
             case "play":
                 if(event.getOption("search") == null){
                     if(isConnected(event.getMember(), event.getTextChannel())) {
-                        hook.sendMessage("Resuming Player ~nyan").queue();
-                        startPlayer(event.getTextChannel());
+                        startPlayer(event.getTextChannel(), hook);
                     }
                 }
                 else{
                     if(isConnected(event.getMember(), event.getTextChannel())){
-                        hook.sendMessage("Playing your track").queue();
+                        hook.setEphemeral(true);
+                        hook.sendMessage("Adding your track").queue();
                         loadAndPlay(event.getMember(),
                                 event.getUser(), event.getTextChannel() ,event.getOption("search").getAsString());
                     }
@@ -96,23 +94,21 @@ public class MusicListener extends ListenerAdapter {
                 break;
             case "skip":
                 if(isConnected(event.getMember(), event.getTextChannel())){
-                    hook.sendMessage("Skipping track ~nyan").queue();
-                    skipTrack(event.getTextChannel());
+                    skipTrack(event.getTextChannel(), hook);
                 }
                 break;
             case "skip-all":
                 if(isConnected(event.getMember(), event.getTextChannel())){
-                    hook.sendMessage("Skipping all tracks ~nyan").queue();
-                    skipAllTrack(event.getTextChannel());
+                    skipAllTrack(event.getTextChannel(), hook);
                 }
                 break;
             case "stop":
                 if(isConnected(event.getMember(), event.getTextChannel())){
-                    hook.sendMessage("Pausing current track ~nyan").queue();
-                    stopTrack(event.getTextChannel());
+                    stopTrack(event.getTextChannel(), hook);
                 }
                 break;
             default:
+                hook.setEphemeral(true);
                 if(isConnected(event.getMember(), event.getTextChannel()))
                     hook.sendMessage("Something went wrong ~nyan").queue();
                 else hook.sendMessage("Your not in a voice channel").queue();
@@ -269,10 +265,12 @@ public class MusicListener extends ListenerAdapter {
      * Skip one track
      * @param channel Channel to send a message to
      */
-    private void skipTrack(TextChannel channel){
+    private void skipTrack(TextChannel channel, InteractionHook hook){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
-        channel.sendMessage("Skipped to next track ~nyan.").queue();
+        if(hook == null) {
+            channel.sendMessage("Skipped to next track ~nyan.").queue();
+        } else hook.sendMessage("Skipped to next track ~nyan.").queue();
         musicManager.scheduler.nextTrack(false);
     }
 
@@ -280,12 +278,14 @@ public class MusicListener extends ListenerAdapter {
      * Skip all tracks
      * @param channel Channel to send a message to
      */
-    private void skipAllTrack(TextChannel channel){
+    private void skipAllTrack(TextChannel channel, InteractionHook hook){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
         musicManager.scheduler.skipAllTracks();
 
-        channel.sendMessage("Skipped all tracks ~nyan.").queue();
+        if(hook == null) {
+            channel.sendMessage("Skipped all tracks ~nyan.").queue();
+        } else hook.sendMessage("Skipped all tracks ~nyan.").queue();
 
     }
 
@@ -293,28 +293,34 @@ public class MusicListener extends ListenerAdapter {
      * Pause playing track
      * @param channel Channel to send message to
      */
-    private void stopTrack(TextChannel channel){
+    private void stopTrack(TextChannel channel, InteractionHook hook){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
         musicManager.player.setPaused(true);
 
-        channel.sendMessage("Paused the track ~nyan").queue();
+        if(hook == null) {
+            channel.sendMessage("Paused the track ~nyan").queue();
+        } else hook.sendMessage("Paused the track ~nyan").queue();
     }
 
     /**
      * Unpause the player
      * @param channel Channel to send message to
      */
-    private void startPlayer(TextChannel channel){
+    private void startPlayer(TextChannel channel, InteractionHook hook){
         GuildMusicManager musicManager = getGuildAudioPlayer(channel.getGuild());
         musicManager.scheduler.updateChannel(channel);
 
         if (musicManager.player.isPaused()) {
             musicManager.player.setPaused(false);
-            channel.sendMessage("UnPausing Player ~nyan.").queue();
+            if(hook == null) {
+                channel.sendMessage("Resuming Player ~nyan.").queue();
+            } else hook.sendMessage("Resuming Player ~nyan.").queue();
         }
         else {
-            channel.sendMessage("No track mentioned next to command ~nyan.").queue();
+            if(hook == null) {
+                channel.sendMessage("No track able to be resumed right now. ~nyan.").queue();
+            } else hook.sendMessage("No track able to be resumed right now. ~nyan.").queue();
         }
 
     }
