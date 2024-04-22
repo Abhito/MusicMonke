@@ -6,13 +6,16 @@ import abhito.musicmonke.listeners.lavaplayer.GuildMusicManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
+import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.source.youtube.*;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceMoveEvent;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -40,7 +43,7 @@ public class MusicListener extends ListenerAdapter {
     public MusicListener() {
         this.musicManagers = new HashMap<>();
         this.playerManager = new DefaultAudioPlayerManager();
-        playerManager.registerSourceManager(new YoutubeAudioSourceManager(true));
+        AudioSourceManagers.registerRemoteSources(playerManager);
     }
 
     /**
@@ -52,20 +55,21 @@ public class MusicListener extends ListenerAdapter {
         if(event.getAuthor().isBot() || event.getMember() == null) return;
         String[] command = event.getMessage().getContentRaw().split(" ", 2);
         if ("!play".equals(command[0]) && command.length == 2) {
-            if(isConnected(event.getMember(), event.getTextChannel()))
-                loadAndPlay(event.getMember(), event.getAuthor(), event.getTextChannel(),command[1]);
+            System.out.println("On Message Received " + command[0] + " " + command[1]);
+            if(isConnected(event.getMember(), event.getChannel().asTextChannel()))
+                loadAndPlay(event.getMember(), event.getAuthor(),event.getChannel().asTextChannel(),command[1]);
         } else if ("!play".equals(command[0]) && command.length == 1) {
-            if(isConnected(event.getMember(), event.getTextChannel()))
-                startPlayer(event.getTextChannel(), null);
+            if(isConnected(event.getMember(), event.getChannel().asTextChannel()))
+                startPlayer(event.getChannel().asTextChannel(), null);
         } else if ("!skip".equals(command[0]) && command.length == 1) {
-            if(isConnected(event.getMember(), event.getTextChannel()))
-                skipTrack(event.getTextChannel(), null);
+            if(isConnected(event.getMember(), event.getChannel().asTextChannel()))
+                skipTrack(event.getChannel().asTextChannel(), null);
         } else if ("!skip".equals(command[0]) && "all".equals(command[1])) {
-            if(isConnected(event.getMember(), event.getTextChannel()))
-                skipAllTrack(event.getTextChannel(), null);
+            if(isConnected(event.getMember(), event.getChannel().asTextChannel()))
+                skipAllTrack(event.getChannel().asTextChannel(), null);
         } else if ("!stop".equals(command[0])) {
-            if(isConnected(event.getMember(), event.getTextChannel()))
-                stopTrack(event.getTextChannel(), null);
+            if(isConnected(event.getMember(), event.getChannel().asTextChannel()))
+                stopTrack(event.getChannel().asTextChannel(), null);
         }
 
     }
@@ -79,37 +83,37 @@ public class MusicListener extends ListenerAdapter {
         switch (event.getName()){
             case "play":
                 if(event.getOption("search") == null){
-                    if(isConnected(event.getMember(), event.getTextChannel())) {
-                        startPlayer(event.getTextChannel(), hook);
+                    if(isConnected(event.getMember(), event.getChannel().asTextChannel())) {
+                        startPlayer(event.getChannel().asTextChannel(), hook);
                     }
                 }
                 else{
-                    if(isConnected(event.getMember(), event.getTextChannel())){
+                    if(isConnected(event.getMember(), event.getChannel().asTextChannel())){
                         hook.setEphemeral(true);
                         hook.sendMessage("Adding your track").queue();
                         loadAndPlay(event.getMember(),
-                                event.getUser(), event.getTextChannel() ,event.getOption("search").getAsString());
+                                event.getUser(), event.getChannel().asTextChannel() ,event.getOption("search").getAsString());
                     }
                 }
                 break;
             case "skip":
-                if(isConnected(event.getMember(), event.getTextChannel())){
-                    skipTrack(event.getTextChannel(), hook);
+                if(isConnected(event.getMember(), event.getChannel().asTextChannel())){
+                    skipTrack(event.getChannel().asTextChannel(), hook);
                 }
                 break;
             case "skip-all":
-                if(isConnected(event.getMember(), event.getTextChannel())){
-                    skipAllTrack(event.getTextChannel(), hook);
+                if(isConnected(event.getMember(),event.getChannel().asTextChannel())){
+                    skipAllTrack(event.getChannel().asTextChannel(), hook);
                 }
                 break;
             case "stop":
-                if(isConnected(event.getMember(), event.getTextChannel())){
-                    stopTrack(event.getTextChannel(), hook);
+                if(isConnected(event.getMember(), event.getChannel().asTextChannel())){
+                    stopTrack(event.getChannel().asTextChannel(), hook);
                 }
                 break;
             default:
                 hook.setEphemeral(true);
-                if(isConnected(event.getMember(), event.getTextChannel()))
+                if(isConnected(event.getMember(),event.getChannel().asTextChannel()))
                     hook.sendMessage("Something went wrong ~nyan").queue();
                 else hook.sendMessage("Your not in a voice channel").queue();
         }
@@ -123,18 +127,11 @@ public class MusicListener extends ListenerAdapter {
      * Tell the bot to leave when someone leaves
      * @param event When someone leaves
      */
-    @Override
-    public void onGuildVoiceLeave(GuildVoiceLeaveEvent event){
-        leaveChannel(event.getGuild(), event.getChannelLeft());
-    }
-
-    /**
-     * Tell the bot to leave when someone moves to a different channel
-     * @param event When someone moves
-     */
-    @Override
-    public void onGuildVoiceMove(GuildVoiceMoveEvent event){
-        leaveChannel(event.getGuild(), event.getChannelLeft());
+    public void GuildVoiceUpdateEvent(GuildVoiceUpdateEvent event){
+        AudioChannelUnion leftChannel = event.getChannelLeft();
+        if(leftChannel != null){
+            leaveChannel(event.getGuild(), leftChannel);
+        }
     }
 
     /**
@@ -142,7 +139,7 @@ public class MusicListener extends ListenerAdapter {
      * @param guild The server where the bot is
      * @param channelLeft The voice channel to check
      */
-    private void leaveChannel(Guild guild, AudioChannel channelLeft) {
+    private void leaveChannel(Guild guild, AudioChannelUnion channelLeft) {
         GuildMusicManager musicManager = getGuildAudioPlayer(guild);
         AudioManager audioManager = channelLeft.getGuild().getAudioManager();
         if(audioManager.isConnected() && channelLeft.getMembers().size() == 1){
@@ -168,7 +165,7 @@ public class MusicListener extends ListenerAdapter {
             public void trackLoaded(AudioTrack audioTrack) {
                 MonkeEmbed embeder = EmbedMaker(audioTrack, user);
                 channel.sendMessageEmbeds(embeder.eb.build()).queue();
-
+                System.out.println("Loading Track " + audioTrack);
                 play(member, channel, musicManager, audioTrack, embeder);
             }
 
@@ -195,6 +192,7 @@ public class MusicListener extends ListenerAdapter {
 
             @Override
             public void noMatches() {
+                System.out.println("No matches found");
                 if(!url.startsWith("ytsearch: ")) {
                     String search = "ytsearch: " + url;
                     loadAndPlay(member, user, channel, search);
@@ -206,6 +204,8 @@ public class MusicListener extends ListenerAdapter {
 
             @Override
             public void loadFailed(FriendlyException e) {
+                System.out.println(url);
+                System.out.println(e);
                 channel.sendMessage("Could not play: " + e.getMessage()).queue();
             }
         });

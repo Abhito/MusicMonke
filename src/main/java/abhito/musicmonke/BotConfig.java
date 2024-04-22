@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -33,13 +34,13 @@ public class BotConfig {
     /**
      * Starts the jda bot
      * @return The jda bot
-     * @throws LoginException If the bot fails to login
+     * @throws LoginException If the bot fails to log in
      */
     @Bean
     @ConfigurationProperties(value = "discord-api")
     public JDA Discordjda() throws LoginException {
         String token = System.getenv("TOKEN");
-        JDA jda = JDABuilder.createDefault(token).build();
+        JDA jda = JDABuilder.createDefault(token).enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
         jda.addEventListener(pingListener);
         jda.addEventListener(musicListener);
         CommandListUpdateAction commands = jda.updateCommands();
