@@ -7,7 +7,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.source.youtube.*;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -29,7 +28,7 @@ import java.util.Map;
 /**
  * MusicListener handles all discord operations related to music
  * @author Abhinav Singhal
- * @version 1.0
+ * @version 1.1
  */
 @Component
 public class MusicListener extends ListenerAdapter {
@@ -74,6 +73,11 @@ public class MusicListener extends ListenerAdapter {
 
     }
 
+    /**
+     * Calls methods when commands related to music are used
+     * @param event The Slash Message event
+     */
+    @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event){
         // Only accept commands from guilds
         if (event.getGuild() == null || event.getMember() == null)
@@ -119,20 +123,19 @@ public class MusicListener extends ListenerAdapter {
         }
     }
 
-    public void slashPlayHandler(SlashCommandInteractionEvent event){
-
-    }
 
     /**
      * Tell the bot to leave when someone leaves
      * @param event When someone leaves
      */
-    public void GuildVoiceUpdateEvent(GuildVoiceUpdateEvent event){
+    @Override
+    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event){
         AudioChannelUnion leftChannel = event.getChannelLeft();
         if(leftChannel != null){
             leaveChannel(event.getGuild(), leftChannel);
         }
     }
+
 
     /**
      * Tells the bot to leave voice channel
@@ -228,7 +231,7 @@ public class MusicListener extends ListenerAdapter {
 
     /**
      * Creates music managers for each server the bot is used in
-     * @param guild Which server to create an music manager for
+     * @param guild Which server to create a music manager for
      * @return A guild music Manager for the server
      */
     private synchronized GuildMusicManager getGuildAudioPlayer(Guild guild){

@@ -20,7 +20,7 @@ import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 /**
  * Starts up the bot and contains the config for it.
  * @author Abhinav Singhal
- * @version 1.1.1
+ * @version 1.2.0
  */
 @Configuration
 public class BotConfig {
