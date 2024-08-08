@@ -26,10 +26,6 @@ public class MonkeEmbed {
      * @param url The youtube url
      */
     public void createThumbnail(String url){
-        String[] uri = url.split("v=", 2);
-        String[] second = uri[1].split("&", 2);
-        String start = "https://img.youtube.com/vi/";
-        start = start + second[0] + "/0.jpg";
-        eb.setThumbnail(start);
+        eb.setThumbnail(url);
     }
 }

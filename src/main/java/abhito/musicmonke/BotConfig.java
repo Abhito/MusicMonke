@@ -19,8 +19,9 @@ import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 /**
  * Starts up the bot and contains the config for it.
+ *
  * @author Abhinav Singhal
- * @version 1.2.0
+ * @version 1.3.0
  */
 @Configuration
 public class BotConfig {
@@ -33,6 +34,7 @@ public class BotConfig {
 
     /**
      * Starts the jda bot
+     *
      * @return The jda bot
      * @throws LoginException If the bot fails to log in
      */
@@ -46,17 +48,12 @@ public class BotConfig {
         CommandListUpdateAction commands = jda.updateCommands();
         commands.addCommands(
                 Commands.slash("play", "Play from current queue")
-                        .addOptions(new OptionData(STRING, "search", "The track you want to play" ))
-                        .setGuildOnly(true)
-        );
-        commands.addCommands(
-               Commands.slash("skip", "Skip current song").setGuildOnly(true)
-        );
-        commands.addCommands(
-                Commands.slash("skip-all", "Skip all songs in queue").setGuildOnly(true)
-        );
-        commands.addCommands(
-                Commands.slash("stop", "Pause current track").setGuildOnly(true)
+                        .addOptions(new OptionData(STRING, "search", "The track you want to play"))
+                        .setGuildOnly(true),
+                Commands.slash("skip", "Skip current song").setGuildOnly(true),
+                Commands.slash("skip-all", "Skip all songs in queue").setGuildOnly(true),
+                Commands.slash("stop", "Pause current track").setGuildOnly(true),
+                Commands.slash("shuffle", "Shuffle all songs in the queue").setGuildOnly(true)
         );
         commands.queue();
         return jda;
