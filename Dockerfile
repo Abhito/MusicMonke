@@ -8,4 +8,4 @@ EXPOSE 8080
 ARG TOKEN
 ENV TOKEN=$TOKEN
 
-ENTRYPOINT ["java", "-jar", "MusicMonke-1.2.0.jar"]
+ENTRYPOINT ["java", "-jar", "MusicMonke-1.3.0.jar"]
