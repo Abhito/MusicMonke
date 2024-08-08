@@ -8,17 +8,28 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
     private final AudioPlayer player;
-    private final Queue<AudioTrack> queueList;
-    private final Queue<MonkeEmbed> monkeList;
+    private final List<TrackEmbedPair> trackEmbedPairs;
     private TextChannel channel;
+
+    /**
+     * Contains both the audio track and embed object
+     */
+    private static class TrackEmbedPair {
+        final AudioTrack track;
+        final MonkeEmbed embed;
+
+        TrackEmbedPair(AudioTrack track, MonkeEmbed embed) {
+            this.track = track;
+            this.embed = embed;
+        }
+    }
 
     /**
      * Creates a scheduler
@@ -26,8 +37,7 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     public TrackScheduler(AudioPlayer player){
         this.player = player;
-        this.queueList = new LinkedList<>();
-        this.monkeList = new LinkedList<>();
+        this.trackEmbedPairs =new ArrayList<>();
         channel = null;
     }
 
@@ -37,8 +47,7 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     public void queue(AudioTrack track, MonkeEmbed embed){
         if(!player.startTrack(track,true)) {
-            queueList.offer(track);
-            monkeList.offer(embed);
+            trackEmbedPairs.add(new TrackEmbedPair(track, embed));
         }
         else {
             embed.eb.setAuthor("Now Playing");
@@ -52,26 +61,27 @@ public class TrackScheduler extends AudioEventAdapter {
     public void nextTrack(boolean skip){
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        MonkeEmbed embed = monkeList.poll();
-        if(embed != null && !skip) {
-            embed.eb.setAuthor("Now Playing");
-            channel.sendMessageEmbeds(embed.eb.build()).queue();
+
+        if (!trackEmbedPairs.isEmpty()) {
+            TrackEmbedPair pair = trackEmbedPairs.remove(0);
+            if (pair.embed != null && !skip) {
+                pair.embed.eb.setAuthor("Now Playing");
+                channel.sendMessageEmbeds(pair.embed.eb.build()).queue();
+            }
+            player.startTrack(pair.track, false);
+        } else {
+            player.startTrack(null, false);
         }
-        player.startTrack(queueList.poll(), false);
     }
 
     /**
      * Skip every track in queue
      */
     public void skipAllTracks(){
-        if(queueList.isEmpty()){
-            nextTrack(true);
+        if (!trackEmbedPairs.isEmpty()) {
+            trackEmbedPairs.clear();
         }
-        else {
-            queueList.poll();
-            monkeList.poll();
-            skipAllTracks();
-        }
+        nextTrack(true);
     }
 
     /**
@@ -93,5 +103,19 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     public void updateChannel(TextChannel channel){
         this.channel = channel;
+    }
+
+    /**
+     * Shuffles all tracks in the queue
+     */
+    public void shuffleTracks(){
+        Collections.shuffle(trackEmbedPairs);
+    }
+
+    /**
+     * @return track list
+     */
+    public List<TrackEmbedPair> getTracks() {
+        return trackEmbedPairs;
     }
 }
