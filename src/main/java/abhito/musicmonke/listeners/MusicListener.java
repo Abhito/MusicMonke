@@ -10,9 +10,6 @@ import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import dev.lavalink.youtube.YoutubeAudioSourceManager;
-import dev.lavalink.youtube.clients.AndroidTestsuiteWithThumbnail;
-import dev.lavalink.youtube.clients.MusicWithThumbnail;
-import dev.lavalink.youtube.clients.WebWithThumbnail;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
@@ -32,7 +29,7 @@ import java.util.Map;
  * MusicListener handles all discord operations related to music
  *
  * @author Abhinav Singhal
- * @version 1.2
+ * @version 1.3.1
  */
 @Component
 public class MusicListener extends ListenerAdapter {
@@ -45,8 +42,8 @@ public class MusicListener extends ListenerAdapter {
     public MusicListener() {
         this.musicManagers = new HashMap<>();
         this.playerManager = new DefaultAudioPlayerManager();
-        this.playerManager.registerSourceManager(new YoutubeAudioSourceManager(true, new MusicWithThumbnail(),
-                new WebWithThumbnail(), new AndroidTestsuiteWithThumbnail()));
+        YoutubeAudioSourceManager ytms = new dev.lavalink.youtube.YoutubeAudioSourceManager();
+        this.playerManager.registerSourceManager(ytms);
         AudioSourceManagers.registerRemoteSources(playerManager,
                 com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class);
         AudioSourceManagers.registerLocalSource(this.playerManager);
