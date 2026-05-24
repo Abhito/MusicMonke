@@ -2,8 +2,11 @@ package abhito.musicmonke;
 
 import abhito.musicmonke.listeners.MusicListener;
 import abhito.musicmonke.listeners.PingListener;
+import club.minnced.discord.jdave.interop.JDaveSessionFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -42,18 +45,22 @@ public class BotConfig {
     @ConfigurationProperties(value = "discord-api")
     public JDA Discordjda() throws LoginException {
         String token = System.getenv("TOKEN");
-        JDA jda = JDABuilder.createDefault(token).enableIntents(GatewayIntent.MESSAGE_CONTENT).build();
+        JDA jda = JDABuilder.createDefault(token)
+                .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .setAudioModuleConfig(new AudioModuleConfig()
+                        .withDaveSessionFactory(new JDaveSessionFactory()))
+                .build();
         jda.addEventListener(pingListener);
         jda.addEventListener(musicListener);
         CommandListUpdateAction commands = jda.updateCommands();
         commands.addCommands(
                 Commands.slash("play", "Play from current queue")
                         .addOptions(new OptionData(STRING, "search", "The track you want to play"))
-                        .setGuildOnly(true),
-                Commands.slash("skip", "Skip current song").setGuildOnly(true),
-                Commands.slash("skip-all", "Skip all songs in queue").setGuildOnly(true),
-                Commands.slash("stop", "Pause current track").setGuildOnly(true),
-                Commands.slash("shuffle", "Shuffle all songs in the queue").setGuildOnly(true)
+                        .setContexts(InteractionContextType.GUILD),
+                Commands.slash("skip", "Skip current song").setContexts(InteractionContextType.GUILD),
+                Commands.slash("skip-all", "Skip all songs in queue").setContexts(InteractionContextType.GUILD),
+                Commands.slash("stop", "Pause current track").setContexts(InteractionContextType.GUILD),
+                Commands.slash("shuffle", "Shuffle all songs in the queue").setContexts(InteractionContextType.GUILD)
         );
         commands.queue();
         return jda;
