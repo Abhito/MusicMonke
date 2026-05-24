@@ -69,6 +69,12 @@
             <version>${jdave.version}</version>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-linux-aarch64</artifactId>
+            <version>${jdave.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <groupId>dev.lavalink.youtube</groupId>

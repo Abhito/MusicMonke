@@ -5,5 +5,6 @@ EXPOSE 8080
 
 ARG TOKEN
 ENV TOKEN=$TOKEN
+ENV JAVA_TOOL_OPTIONS="--enable-native-access=ALL-UNNAMED"
 
 ENTRYPOINT ["java", "--enable-native-access=ALL-UNNAMED", "-jar", "MusicMonke.jar"]
