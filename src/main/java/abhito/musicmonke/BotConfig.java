@@ -2,10 +2,12 @@ package abhito.musicmonke;
 
 import abhito.musicmonke.listeners.MusicListener;
 import abhito.musicmonke.listeners.PingListener;
-import club.minnced.discord.jdave.interop.JDaveSessionFactory;
+import moe.kyokobot.libdave.NativeDaveFactory;
+import moe.kyokobot.libdave.jda.LDJDADaveSessionFactory;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import net.dv8tion.jda.api.audio.dave.DaveSessionFactory;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
@@ -45,10 +47,11 @@ public class BotConfig {
     @ConfigurationProperties(value = "discord-api")
     public JDA Discordjda() throws LoginException {
         String token = System.getenv("TOKEN");
+        DaveSessionFactory daveSessionFactory = new LDJDADaveSessionFactory(new NativeDaveFactory());
         JDA jda = JDABuilder.createDefault(token)
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .setAudioModuleConfig(new AudioModuleConfig()
-                        .withDaveSessionFactory(new JDaveSessionFactory()))
+                        .withDaveSessionFactory(daveSessionFactory))
                 .build();
         jda.addEventListener(pingListener);
         jda.addEventListener(musicListener);
